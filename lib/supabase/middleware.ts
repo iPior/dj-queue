@@ -65,5 +65,49 @@ export async function updateSession(request: NextRequest) {
   // If this is not done, you may be causing the browser and server to go out
   // of sync and terminate the user's session prematurely!
 
+  
+  // Handle authenticated users
+  if (user) {
+    // Check onboarding for protected routes
+    if (request.nextUrl.pathname.startsWith("/profile") && request.nextUrl.pathname !== "/profile-setup") {
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarded')
+          .eq('id', user.sub)
+          .single();
+
+        if (!profile?.onboarded) {
+          const url = request.nextUrl.clone();
+          url.pathname = "/profile-setup";
+          return NextResponse.redirect(url);
+        }
+      } catch {
+        const url = request.nextUrl.clone();
+        url.pathname = "/profile-setup";
+        return NextResponse.redirect(url);
+      }
+    }
+
+    // Prevent onboarded users from accessing profile-setup
+    if (request.nextUrl.pathname === "/profile-setup") {
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarded')
+          .eq('id', user.sub)
+          .single();
+
+        if (profile?.onboarded) {
+          const url = request.nextUrl.clone();
+          url.pathname = "/profile";
+          return NextResponse.redirect(url);
+        }
+      } catch {
+        // Allow access if error occurs
+      }
+    }
+  }
+
   return supabaseResponse;
 }

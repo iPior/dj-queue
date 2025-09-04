@@ -7,6 +7,8 @@ export interface UserProfile {
   bio: string | null;
   email: string;
   avatar_url: string | null;
+  streaming_services: string[] | null;
+  onboarded: boolean;
   created_at: string;
   updated_at: string;
 }

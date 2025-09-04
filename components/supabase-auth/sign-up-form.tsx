@@ -48,6 +48,7 @@ export function SignUpForm({
           emailRedirectTo: `${window.location.origin}/profile-setup`,
           data: {
             username,
+            onboarded: false,
           },
         },
       });

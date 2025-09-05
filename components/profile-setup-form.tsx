@@ -140,6 +140,7 @@ export function ProfileSetupForm({ user }: ProfileSetupFormProps) {
               />
             </div>
 
+
             <div className="grid gap-3">
               <Label htmlFor="profilePic">Profile Picture</Label>
               <div className="flex items-center gap-4">

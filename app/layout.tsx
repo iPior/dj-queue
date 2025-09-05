@@ -35,7 +35,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Header />
-          <main>
+          <main className="min-h-screen pt-16">
             {children}
           </main>
         </ThemeProvider>

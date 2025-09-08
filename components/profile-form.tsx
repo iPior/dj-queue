@@ -300,7 +300,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
                 </Button>
                 <Button 
                   type="button" 
-                  variant="outline" 
+                  variant="default" 
                   onClick={handleCancel}
                   disabled={isLoading}
                   className="flex-1"

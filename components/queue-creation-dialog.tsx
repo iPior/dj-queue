@@ -14,6 +14,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { generateShortId } from '@/lib/utils';
+import { useRouter } from "next/navigation";
 
 interface QueueCreationDialogProps {
   onQueueCreated?: () => void;
@@ -25,6 +27,7 @@ export function QueueCreationDialog({ onQueueCreated }: QueueCreationDialogProps
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleCreateQueue = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,42 +37,52 @@ export function QueueCreationDialog({ onQueueCreated }: QueueCreationDialogProps
     const supabase = createClient();
 
     try {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        throw new Error("User not authenticated");
-      }
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("User not authenticated");
 
-      // Create queue in database
-      const { data, error } = await supabase
+    // Generate a unique code for the queue
+    let code: string;
+    while (true) {
+      code = generateShortId();
+      const { data: existing } = await supabase
         .from('queues')
-        .insert({
-          name: queueName,
-          description: description || null,
-          dj_id: user.id,
-          status: 'active',
-          created_at: new Date().toISOString(),
-        })
-        .select()
+        .select('id')
+        .eq('code', code)
         .single();
-
-      if (error) throw error;
-
-      // Reset form and close dialog
-      setQueueName("");
-      setDescription("");
-      setIsOpen(false);
-      
-      // Notify parent component
-      if (onQueueCreated) {
-        onQueueCreated();
-      }
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
-    } finally {
-      setIsLoading(false);
+      if (!existing) break;
     }
+
+    // Create queue in database
+    const { data, error } = await supabase
+      .from('queues')
+      .insert({
+        code,
+        name: queueName,
+        description: description || null,
+        dj_id: user.id,
+        status: 'active',
+        created_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (data) router.push(`/queue/${data.code}`);
+    if (error) throw error;
+
+    // Reset form and close dialog
+    setQueueName("");
+    setDescription("");
+    setIsOpen(false);
+
+    // Notify parent component
+    if (onQueueCreated) onQueueCreated();
+
+  } catch (error: unknown) {
+    setError(error instanceof Error ? error.message : "An error occurred");
+  } finally {
+    setIsLoading(false);
+  }
   };
 
   return (

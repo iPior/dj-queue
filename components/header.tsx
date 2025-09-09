@@ -5,8 +5,8 @@ import { AuthButton } from "./supabase-auth/auth-button";
 
 export function Header() {
   return (
-    <header className="absolute top-0 z-50 w-full border-b bg-transparent">
-      <div className="container flex h-16 items-center justify-between">
+    <header className="absolute w-full top-0 z-50 border-b bg-transparent">
+      <div className="container mx-auto flex h-16 items-center justify-between">
         {/* Logo/Brand */}
         <div className="flex items-center space-x-2">
           <Link href="/" className="flex items-center space-x-2">
@@ -35,7 +35,7 @@ export function Header() {
         {/* Right side - Auth and Theme */}
         <div className="flex items-center space-x-4">
           <AuthButton />
-          <ThemeSwitcher />
+          {/* <ThemeSwitcher /> */}
         </div>
       </div>
     </header>

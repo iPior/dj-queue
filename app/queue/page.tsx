@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserProfile } from "@/lib/user-profile";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { QueueCreationDialog } from "@/components/queue-creation-dialog";
+import { PastQueueCard } from "@/components/past-queue-card";
 
 export default async function QueuePage() {
   const supabase = await createClient();
@@ -19,8 +20,8 @@ export default async function QueuePage() {
   // If user is logged in (DJ), show DJ management interface
   if (user && profile) {
     return (
-      <div className="flex h-full w-full items-center justify-center p-6 md:p-10">
-        <div className="container">
+      <div className="flex h-full w-full items-center justify-center py-12">
+        <div className="w-full">
           <div className="mb-8">
             <h1 className="text-3xl font-bold">Queue Management</h1>
             <p className="text-muted-foreground mt-2">
@@ -50,6 +51,7 @@ export default async function QueuePage() {
               </CardHeader>
               <CardContent>
                 {/* This will be filled with past queues */}
+                <PastQueueCard/>
               </CardContent>
             </Card>
           </div>

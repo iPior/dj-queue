@@ -30,7 +30,7 @@ export default async function QueuePage() {
           </div>
 
           <div className="grid gap-6">
-            <Card>
+            <Card className="w-1/2">
               <CardHeader>
                 <CardTitle>Start a New Queue</CardTitle>
                 <CardDescription>

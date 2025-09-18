@@ -12,7 +12,7 @@
   --color-primary: #9ecbe7;
   --color-primary-foreground: var(--color-slate-50);
 
-  --color-popover: var(--color-gray-50);
+  --color-popover: #9ecbe7;
   --color-popover-foreground: var(--color-slate-950);
 
   --color-border: var(--color-stone-400);
@@ -33,7 +33,8 @@
     --color-background: #10151c;
     --color-foreground: var(--color-slate-50);
 
-    --color-popover: var(--color-slate-950);
+    /* --color-popover: var(--color-slate-950); */
+    --color-popover: #9ecbe7;
     --color-popover-foreground: var(--color-slate-50);
 
     --color-border: var(--color-gray-600);

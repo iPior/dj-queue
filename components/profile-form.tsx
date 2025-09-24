@@ -3,23 +3,14 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { UserProfile } from "@/lib/user-profile";
+import { PencilLine } from 'lucide-react';
 
-interface ProfileFormProps {
-  profile: UserProfile;
-}
-
-export function ProfileForm({ profile }: ProfileFormProps) {
+export function ProfileForm({ profile }: { profile: UserProfile }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [username, setUsername] = useState(profile.username);
   const [displayName, setDisplayName] = useState(profile.display_name || "");
@@ -144,174 +135,171 @@ export function ProfileForm({ profile }: ProfileFormProps) {
     }
   };
 
+  
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle className="text-2xl">Your Profile</CardTitle>
-          <CardDescription>
-            Manage your profile information and preferences
-          </CardDescription>
-        </div>
-        {!isEditMode && (
-          <Button onClick={handleEdit} variant="outline">
-            Edit Profile
-          </Button>
-        )}
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleProfileUpdate}>
-          <div className="flex flex-col gap-6">
-            {/* Profile Picture Section */}
-            <div className="grid gap-3">
-              <Label>Profile Picture</Label>
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  {profilePicPreview ? (
-                    <img
-                      src={profilePicPreview}
-                      alt="Profile picture"
-                      className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
-                    />
-                  ) : (
-                    <div className="w-20 h-20 rounded-full bg-gray-200 border-2 border-gray-300 flex items-center justify-center">
-                      <span className="text-gray-500 text-sm">No image</span>
+    <div className="w-full">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold flex items-center gap-2">
+          <span>Your Profile</span>
+          {!isEditMode && (
+            <Button onClick={handleEdit} variant="default">
+              <PencilLine className="h-8 w-8" />
+            </Button>
+          )}
+          
+        </h1>
+      </div>
+      <Card className="p-4">
+          <form onSubmit={handleProfileUpdate}>
+            <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
+              {/* Column 1: Profile Picture */}
+              <div className="flex flex-col items-center gap-6 w-full lg:w-1/5 justify-center">
+                <div className="flex flex-col items-center gap-3 h-full w-full">
+                  <div className="h-full w-full">
+                    {profilePicPreview ? (
+                      <img
+                        src={profilePicPreview}
+                        alt="Profile picture"
+                        className="h-full w-full object-cover border"
+                      />
+                    ) : (
+                      <div className="w-full h-full rounded-full bg-gray-200 border-2 border-gray-300 flex items-center justify-center">
+                        <span className="text-gray-500 text-sm">No image</span>
+                      </div>
+                    )}
+                  </div>
+                  {isEditMode && (
+                    <div className="w-full">
+                      <Input
+                        id="profilePic"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleProfilePicChange}
+                        className="cursor-pointer"
+                      />
+                      <p className="text-xs text-gray-500 mt-1 text-center">
+                        Recommended: Square image, max 5MB
+                      </p>
+                    </div>
+                  )}
+                  {isEditMode && (
+                    <div className="flex gap-2">
+                      <Button type="submit" className="flex-1" disabled={isLoading}>
+                        {isLoading ? 'Updating profile...' : 'Save Changes'}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="default"
+                        onClick={handleCancel}
+                        disabled={isLoading}
+                        className="flex-1"
+                      >
+                        Cancel
+                      </Button>
                     </div>
                   )}
                 </div>
-                {isEditMode && (
-                  <div className="flex-1">
-                    <Input
-                      id="profilePic"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleProfilePicChange}
-                      className="cursor-pointer"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Recommended: Square image, max 5MB
-                    </p>
+              </div>
+
+              {/* Column 2: Email, Username, Display Name */}
+              <div className="flex flex-col gap-4 w-full lg:w-2/5 justify-center">
+                <div className="grid gap-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={profile.email}
+                    disabled
+                    className="bg-muted"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Email cannot be changed
+                  </p>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
+                    type="text"
+                    placeholder="johndoe"
+                    required
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    disabled={!isEditMode}
+                    className={!isEditMode ? 'bg-muted' : ''}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="displayName">Display Name</Label>
+                  <Input
+                    id="displayName"
+                    type="text"
+                    placeholder="John Doe"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    disabled={!isEditMode}
+                    className={!isEditMode ? 'bg-muted' : ''}
+                  />
+                </div>
+                {error && <p className="text-sm text-red-500">{error}</p>}
+                {success && <p className="text-sm text-green-500">{success}</p>}
+              </div>
+
+              {/* Column 3: Bio + Streaming Services + Actions */}
+              <div className="flex flex-col gap-4 w-full lg:w-2/5 justify-center">
+                <div className="grid gap-2">
+                  <Label htmlFor="bio">Bio</Label>
+                  <Input
+                    id="bio"
+                    placeholder="Tell us a bit about yourself..."
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    className={`min-h-[80px] flex items-start resize-none ${!isEditMode ? 'bg-muted' : ''}`}
+                    disabled={!isEditMode}
+                  />  
+                </div>
+                <div className="w-full">
+                  <Label>Preferred Streaming Services</Label>
+                  <div className="flex flex-col gap-2 mt-2">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="soundcloud"
+                        checked={streamingServices.includes('soundcloud')}
+                        onCheckedChange={(checked) => handleStreamingServiceChange('soundcloud', checked === true)}
+                        disabled={!isEditMode}
+                      />
+                      <Label htmlFor="soundcloud" className="text-sm font-normal cursor-pointer">
+                        Soundcloud
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="beatport"
+                        checked={streamingServices.includes('beatport')}
+                        onCheckedChange={(checked) => handleStreamingServiceChange('beatport', checked === true)}
+                        disabled={!isEditMode}
+                      />
+                      <Label htmlFor="beatport" className="text-sm font-normal cursor-pointer">
+                        Beatport
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="tidal"
+                        checked={streamingServices.includes('tidal')}
+                        onCheckedChange={(checked) => handleStreamingServiceChange('tidal', checked === true)}
+                        disabled={!isEditMode}
+                      />
+                      <Label htmlFor="tidal" className="text-sm font-normal cursor-pointer">
+                        Tidal
+                      </Label>
+                    </div>
                   </div>
-                )}
-              </div>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={profile.email}
-                disabled
-                className="bg-muted"
-              />
-              <p className="text-xs text-muted-foreground">
-                Email cannot be changed
-              </p>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                type="text"
-                placeholder="johndoe"
-                required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                disabled={!isEditMode}
-                className={!isEditMode ? "bg-muted" : ""}
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="displayName">Display Name</Label>
-              <Input
-                id="displayName"
-                type="text"
-                placeholder="John Doe"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                disabled={!isEditMode}
-                className={!isEditMode ? "bg-muted" : ""}
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="bio">Bio</Label>
-              <Input
-                id="bio"
-                placeholder="Tell us a bit about yourself..."
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                className={`min-h-[80px] resize-none ${!isEditMode ? "bg-muted" : ""}`}
-                disabled={!isEditMode}
-              />
-            </div>
-
-
-            {/* Streaming Services Section */}
-            <div className="grid gap-3">
-              <Label>Preferred Streaming Services</Label>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="soundcloud"
-                    checked={streamingServices.includes("soundcloud")}
-                    onCheckedChange={(checked) => handleStreamingServiceChange("soundcloud", checked === true)}
-                    disabled={!isEditMode}
-                  />
-                  <Label htmlFor="soundcloud" className="text-sm font-normal cursor-pointer">
-                    Soundcloud
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="beatport"
-                    checked={streamingServices.includes("beatport")}
-                    onCheckedChange={(checked) => handleStreamingServiceChange("beatport", checked === true)}
-                    disabled={!isEditMode}
-                  />
-                  <Label htmlFor="beatport" className="text-sm font-normal cursor-pointer">
-                    Beatport
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="tidal"
-                    checked={streamingServices.includes("tidal")}
-                    onCheckedChange={(checked) => handleStreamingServiceChange("tidal", checked === true)}
-                    disabled={!isEditMode}
-                  />
-                  <Label htmlFor="tidal" className="text-sm font-normal cursor-pointer">
-                    Tidal
-                  </Label>
                 </div>
               </div>
             </div>
-
-            {error && <p className="text-sm text-red-500">{error}</p>}
-            {success && <p className="text-sm text-green-500">{success}</p>}
-            
-            {isEditMode && (
-              <div className="flex gap-3">
-                <Button type="submit" className="flex-1" disabled={isLoading}>
-                  {isLoading ? "Updating profile..." : "Save Changes"}
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="default" 
-                  onClick={handleCancel}
-                  disabled={isLoading}
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
-              </div>
-            )}
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+          </form>
+      </Card>
+    </div>
   );
 }

@@ -24,12 +24,6 @@ export function Header() {
           >
             Profile
           </Link>
-          <Link 
-            href="/queue" 
-            className="text-sm font-medium transition-colors hover:text-primary"
-          >
-            Queue
-          </Link>
         </nav>
 
         {/* Right side - Auth and Theme */}

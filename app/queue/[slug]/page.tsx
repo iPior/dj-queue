@@ -91,18 +91,13 @@ export default function QueuePage() {
   const isDJ = user && user.id === queue.dj_id;
 
   return (
-    <div>
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {queue.name}
-          </CardTitle>
-          <CardDescription>
-            {queue.description}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-
+    <div className="flex flex-col gap-4 py-20 w-3/5 mx-auto">
+      <div className="flex flex-col bg-card border rounded-lg p-4 gap-2">
+        <h1 className="text-2xl font-bold">{queue.name}</h1>
+        <p className="text-muted-foreground">{queue.description}</p>
+        <hr className=""/>
+        {/* songs list */}
+        <div>
           <h2>Songs</h2>
           <ul>
             {songs.map(song => (
@@ -117,36 +112,22 @@ export default function QueuePage() {
               </li>
             ))}
           </ul>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            <h2>Add a Song</h2>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleAddSong}>
-            <input
+        </div>
+        <hr/>
+        {/* search bar */}
+        <div>
+          <form onSubmit={handleAddSong} className="flex items-center gap-2">
+            <Label className="text-xl" htmlFor="search">Search: </Label>
+            <Input
               value={newSong.title}
               onChange={e => setNewSong({ ...newSong, title: e.target.value })}
-              placeholder="Title"
+              placeholder="song request"
               required
               />
-            <input
-              value={newSong.artist || ""}
-              onChange={e => setNewSong({ ...newSong, artist: e.target.value })}
-              placeholder="Artist"
-              />
-            <input
-              value={newSong.streaming_service || ""}
-              onChange={e => setNewSong({ ...newSong, streaming_service: e.target.value })}
-              placeholder="Streaming Service"
-              />
-            <button type="submit">Add Song</button>
+            <Button type="submit">Search</Button>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

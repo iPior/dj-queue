@@ -1,8 +1,20 @@
 import Link from "next/link";
-import { Button } from "../ui/button";
 import { createClient } from "@/lib/supabase/server";
 import { LogoutButton } from "./logout-button";
 import { getUserProfile } from "@/lib/user-profile";
+import { User } from "lucide-react"
+import Image from "next/image";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { ThemeSwitcher } from "./theme-switcher";
+
 
 export async function AuthButton() {
   const supabase = await createClient();
@@ -12,27 +24,41 @@ export async function AuthButton() {
 
   const user = data?.claims;
   
-  if (user) {
-    // Get user profile to display username
-    const profile = await getUserProfile(user.sub);
-    const displayName = profile?.display_name || profile?.username || user.email;
-    
-    return (
-      <div className="flex items-center gap-4">
-        <span className="text-sm">Hey, {displayName}!</span>
-        <LogoutButton />
-      </div>
-    );
+  if (!user) {
+    return null;
   }
 
+  // Get user profile to display username
+  const profile = await getUserProfile(user.sub);
+  const displayName = profile?.username || profile?.display_name;
+  
   return (
-    <div className="flex gap-2">
-      <Button asChild size="sm" variant={"outline"}>
-        <Link href="/auth/login">Sign in</Link>
-      </Button>
-      <Button asChild size="sm" variant={"default"}>
-        <Link href="/auth/sign-up">Sign up</Link>
-      </Button>
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger className="hover:cursor-pointer" asChild>
+        {/* <div className="rounded-full overflow-hidden"> */}
+          {profile?.avatar_url ? 
+          <Image 
+            src={profile.avatar_url} 
+            alt={displayName || "User Avatar"} 
+            width={50} 
+            height={50}
+            className="object-cover rounded-full border shadow-lg"
+          /> : <User size={50} />}
+        {/* </div> */}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuLabel className="flex items-center justify-between">
+          <span>{displayName}</span> 
+          <ThemeSwitcher />
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem>
+          <Link href="/profile">Profile</Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <LogoutButton />
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

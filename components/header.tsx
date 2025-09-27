@@ -1,35 +1,21 @@
 import Link from "next/link";
-import { Button } from "./ui/button";
-import { ThemeSwitcher } from "./supabase-auth/theme-switcher";
 import { AuthButton } from "./supabase-auth/auth-button";
 
 export function Header() {
   return (
-    <header className="absolute w-full top-0 z-50 border-b bg-transparent">
-      <div className="container mx-auto flex h-16 items-center justify-between">
+    <header className="absolute w-full top-0 z-50">
+      <div className="container mx-auto flex h-24 items-center justify-between">
         {/* Logo/Brand */}
-        <div className="flex items-center space-x-2">
-          <Link href="/" className="flex items-center space-x-2">
-            <span className="hidden font-bold sm:inline-block text-xl">
-              DJ Queue App
-            </span>
-          </Link>
-        </div>
-
-        {/* Navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
-          <Link 
-            href="/profile" 
-            className="text-sm font-medium transition-colors hover:text-primary"
-          >
-            Profile
-          </Link>
-        </nav>
+        <Link href="/" className="flex items-center space-x-2">
+          <span className="hidden font-bold sm:inline-block text-xl">
+            <span className="text-primary text-3xl">Crowd </span>
+            <span className="text-foreground text-3xl">Control</span>
+          </span>
+        </Link>
 
         {/* Right side - Auth and Theme */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center">
           <AuthButton />
-          {/* <ThemeSwitcher /> */}
         </div>
       </div>
     </header>

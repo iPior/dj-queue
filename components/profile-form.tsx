@@ -138,11 +138,11 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
   
   return (
     <div className="w-full">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold flex items-center gap-2">
+      <div className="mb-4">
+        <h1 className="text-3xl font-bold flex items-center justify-between gap-2">
           <span>Your Profile</span>
           {!isEditMode && (
-            <Button onClick={handleEdit} variant="default">
+            <Button onClick={handleEdit} variant="default" className="rounded-full">
               <PencilLine className="h-8 w-8" />
             </Button>
           )}

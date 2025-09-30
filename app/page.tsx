@@ -1,4 +1,5 @@
 "use client"
+import { createClient } from "@/lib/supabase/client";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,10 +8,14 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 
-export default function Home() {
+export default async function Home() {
   const [searchString, setSearchString] = useState<string>("")
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
+
+  const supabase = await createClient();
+  const { data: user } = await supabase.auth.getUser();
+
   
   const handleQueueSumbit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,7 +23,6 @@ export default function Home() {
 
     // need to connect to supabase and check if such a dj id even exists
     try {
-
       router.push(`/queue/${searchString}`);
     }
     catch (error){
@@ -36,10 +40,10 @@ export default function Home() {
 
         {/* form */}
         <form onSubmit={handleQueueSumbit} className="">
-          <div className="">
-            <h1 className="text-3xl font-bold">Join a Queue</h1>
-            <p className="text-muted-foreground text-lg">
-              Browse and join active DJ queues to request songs
+          <div className="mb-2">
+            <h1 className="text-4xl font-bold">Join a Queue</h1>
+            <p className="text-muted-foreground text-xl">
+              Search and join active DJ queues to request songs
             </p>
           </div>
           <div className="grid gap-2">
@@ -59,7 +63,7 @@ export default function Home() {
         </form>
 
         {/* login or sign up */}
-        <div className="flex flex-col gap-1">
+        {!user && <div className="flex flex-col gap-1">
           <div className="text-center text-sm">
             Already have an account?{" "}
             <Link href="/auth/login" className="underline underline-offset-4">
@@ -72,7 +76,7 @@ export default function Home() {
               Login
             </Link>
           </div>
-        </div>
+        </div>}
 
       </div>
     </main>

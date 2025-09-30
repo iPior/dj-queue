@@ -98,9 +98,9 @@ export default function QueuePage() {
   const playedSongs = songs.filter(song => song.status === "played");
 
   return (
-    <div className="flex flex-col gap-4 py-20 w-3/5 mx-auto">
+    <div className="min-h-screen flex flex-col items-center justify-center gap-4 py-20 w-3/5 mx-auto">
       {/* search bar */}
-      <div className="">
+      <div className="w-full">
         <form onSubmit={handleAddSong} className="flex items-center">
             <Label htmlFor="search"/>
             <Input
@@ -114,7 +114,7 @@ export default function QueuePage() {
           </form>
       </div>
       {/* queue */}
-      <div className="flex flex-col bg-card border rounded-lg p-4 gap-2">
+      <div className="w-full flex flex-col bg-card border rounded-lg p-4 gap-2">
         <div className="">
           <h1 className="text-2xl font-bold">{queue.name}</h1>
           <p className="text-muted-foreground">{queue.description}</p>

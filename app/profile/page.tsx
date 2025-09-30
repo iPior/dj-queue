@@ -21,7 +21,7 @@ export default async function ProfilePage() {
   }
 
   return (
-    <div className="flex flex-col w-full items-center justify-center py-20">
+    <div className="min-h-screenflex flex-col w-full items-center justify-center pt-40">
       <ProfileForm profile={profile} />
       <QueueManagement />
     </div>

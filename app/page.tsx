@@ -8,13 +8,13 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 
-export default async function Home() {
+export default function Home() {
   const [searchString, setSearchString] = useState<string>("")
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
 
-  const supabase = await createClient();
-  const { data: user } = await supabase.auth.getUser();
+  const supabase = createClient();
+  const user  = supabase.auth.getUser();
 
   
   const handleQueueSumbit = async (e: React.FormEvent) => {

@@ -6,30 +6,20 @@ import { Queue, Song, User } from "@/lib/types";
 import { useState, useEffect } from "react";
 
 export default function QueueComponent({ 
-  slug,
-}: { slug: string }) {
+  queue,
+}: { queue: Queue }) {
   const supabase = createClient();
-
-  const [queue, setQueue] = useState<Queue | null>(null);
   const [songs, setSongs] = useState<Song[]>([]);
   const [user, setUser] = useState<User | null>(null);
-  
-  // Fetch queue, songs, and user
+
+  // Fetch initial data and set up realtime subscription
   useEffect(() => {
-    async function fetchData() {
-      // Get queue by code
-      const { data: queueData } = await supabase
-      .from("queues")
-      .select("*")
-        .eq("code", slug)
-        .single();
-        setQueue(queueData as Queue);
-        
+    async function fetchData() {        
         // Get songs for this queue
         const { data: songsData } = await supabase
         .from("songs")
         .select("*")
-        .eq("queue_id", queueData.id)
+        .eq("queue_id", queue.id)
         .order("created_at", { ascending: true });
         setSongs((songsData ?? []) as Song[]);
         
@@ -38,21 +28,50 @@ export default function QueueComponent({
         setUser(user);
       }
       fetchData();
-    }, []);
+
+      // Set up realtime subscription for songs
+      const channel = supabase
+        .channel('songs-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'songs',
+            filter: `queue_id=eq.${queue.id}`
+          },
+          (payload) => {
+            if (payload.eventType === 'INSERT') {
+              setSongs(prev => [...prev, payload.new as Song].sort((a, b) => 
+                new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+              ));
+            } else if (payload.eventType === 'UPDATE') {
+              setSongs(prev => prev.map(song => 
+                song.id === payload.new.id ? payload.new as Song : song
+              ));
+            } else if (payload.eventType === 'DELETE') {
+              setSongs(prev => prev.filter(song => song.id !== payload.old.id));
+            }
+          }
+        )
+        .subscribe();
+        
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }, [queue.id]);
     
   const isDJ = user && user.id === queue?.dj_id;
 
   // Accept/Reject handlers (for DJ)
   async function handleSongStatus(songId:string, status:string) {
-    if (!queue) return; // Guard against null
-    await supabase.from("songs").update({ status }).eq("id", songId);
-    // Re-fetch songs
-    const { data: songsData } = await supabase
-      .from("songs")
-      .select("*")
-      .eq("queue_id", queue.id)
-      .order("created_at", { ascending: true });
-    setSongs((songsData ?? []) as Song[]);
+    if (!queue) return; 
+    const { error } = await supabase.from("songs").update({ status }).eq("id", songId);
+    
+    if (error) {
+      console.error("Error updating song status:", error);
+    }
+    // No need to manually refresh - realtime subscription will handle the update
   }
 
   // Categorize songs by status

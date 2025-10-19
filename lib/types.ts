@@ -19,16 +19,10 @@ export interface Song {
   id: string;
   queue_id: string;
   title: string;
-  artist?: string | null;
-  streaming_service?: string | null;
+  artist?: string | "";
+  streaming_service?: string | "";
   status: SongStatus;
   created_at: string;
-}
-
-export interface NewSong {
-  title: string;
-  artist?: string | null;
-  streaming_service?: string | null;
 }
 
 export interface SpotifyTokens {

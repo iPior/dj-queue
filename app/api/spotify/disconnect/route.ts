@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { updateConnectedService } from '@/lib/spotify-utils';
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,23 +11,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({
-        connected_services: {
-          spotify: {
-            access_token: null,
-            refresh_token: null,
-            expires_in: null,
-            connected: false,
-          }
-        },
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', user.id);
+    const spotifyData = {
+      access_token: null,
+      refresh_token: null,
+      expires_in: null,
+      connected: false,
+    };
 
-    if (updateError) {
-      throw updateError;
+    const updateSuccess = await updateConnectedService(user.id, 'spotify', spotifyData);
+    if (!updateSuccess) {
+      throw new Error('Failed to disconnect Spotify');
     }
 
     return NextResponse.json({ success: true });

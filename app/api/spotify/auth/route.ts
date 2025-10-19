@@ -23,7 +23,10 @@ export async function GET(request: NextRequest) {
       'playlist-read-private',
       'playlist-read-collaborative',
       'user-library-read',
-      'user-top-read'
+      'user-top-read',
+      'user-read-playback-state',
+      'user-modify-playback-state',
+      'streaming',
     ].join(' ');
 
     const authUrl = new URL('https://accounts.spotify.com/authorize');

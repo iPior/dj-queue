@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { Queue, Song, User } from "@/lib/types";
+import { QueueTrackCard } from "@/components/queue-track-card";
 import { useState, useEffect } from "react";
 
 export default function QueueComponent({ 
@@ -61,7 +62,7 @@ export default function QueueComponent({
       };
     }, [queue.id]);
     
-  const isDJ = user && user.id === queue?.dj_id;
+  const isDJ = Boolean(user && user.id === queue?.dj_id);
 
   // Accept/Reject handlers (for DJ)
   async function handleSongStatus(songId:string, status:string) {
@@ -72,6 +73,18 @@ export default function QueueComponent({
       console.error("Error updating song status:", error);
     }
     // No need to manually refresh - realtime subscription will handle the update
+  }
+
+  // Delete handler
+  async function handleDeleteSong(songId: string) {
+    if (!queue) return;
+    const { error } = await supabase.from("songs").delete().eq("id", songId);
+    
+    if (error) {
+      console.error("Error deleting song:", error);
+    } else {
+      setSongs(prev => prev.filter(song => song.id !== songId));
+    }
   }
 
   // Categorize songs by status
@@ -97,64 +110,41 @@ export default function QueueComponent({
           <h2 className="text-lg font-semibold mb-2 text-gray-700">
             Queue ({playedSongs.length + acceptedSongs.length + pendingSongs.length})
           </h2>
-          <ol className="space-y-2">
+          <div className="space-y-2">
             {/* Played Songs */}
             {playedSongs.map((song, index) => (
-              <li key={song.id} className="flex items-center justify-between bg-blue-100 py-2 px-3 rounded-md">
-                <span className="flex items-center gap-3">
-                  <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
-                    ✓
-                  </span>
-                  <span className="text-gray-600">
-                    {song.title} by {song.artist} ({song.streaming_service})
-                  </span>
-                </span>
-              </li>
+              <QueueTrackCard
+                key={song.id}
+                song={song}
+                isDJ={isDJ}
+                onStatusChange={handleSongStatus}
+                onDelete={handleDeleteSong}
+              />
             ))}
             
             {/* Accepted Songs */}
             {acceptedSongs.map((song, index) => (
-              <li key={song.id} className="flex items-center justify-between bg-green-100 py-2 px-3 rounded-md">
-                <span className="flex items-center gap-3">
-                  <span className="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
-                    {playedSongs.length + index + 1}
-                  </span>
-                  <span>
-                    {song.title} by {song.artist} ({song.streaming_service})
-                  </span>
-                </span>
-                {isDJ && (
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => handleSongStatus(song.id, "played")}
-                  >
-                    Mark as Played
-                  </Button>
-                )}
-              </li>
+              <QueueTrackCard
+                key={song.id}
+                song={song}
+                position={playedSongs.length + index + 1}
+                isDJ={isDJ}
+                onStatusChange={handleSongStatus}
+                onDelete={handleDeleteSong}
+              />
             ))}
             
             {/* Pending Songs */}
             {pendingSongs.map((song, index) => (
-              <li key={song.id} className="flex items-center justify-between bg-yellow-100 py-2 px-3 rounded-md">
-                <span className="flex items-center gap-3">
-                  <span className="bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
-                    ?
-                  </span>
-                  <span>
-                    {song.title} by {song.artist} ({song.streaming_service})
-                  </span>
-                </span>
-                {isDJ && (
-                  <div className="gap-2 flex">
-                    <Button size="sm" onClick={() => handleSongStatus(song.id, "accepted")}>Accept</Button>
-                    <Button size="sm" variant="destructive" onClick={() => handleSongStatus(song.id, "rejected")}>Reject</Button>
-                  </div>
-                )}
-              </li>
+              <QueueTrackCard
+                key={song.id}
+                song={song}
+                isDJ={isDJ}
+                onStatusChange={handleSongStatus}
+                onDelete={handleDeleteSong}
+              />
             ))}
-          </ol>
+          </div>
         </div>
       )}
 
@@ -162,24 +152,17 @@ export default function QueueComponent({
       {rejectedSongs.length > 0 && (
         <div className="mb-4">
           <h2 className="text-lg font-semibold mb-2 text-red-700">Rejected ({rejectedSongs.length})</h2>
-          <ul className="space-y-2">
+          <div className="space-y-2">
             {rejectedSongs.map(song => (
-              <li key={song.id} className="flex items-center justify-between bg-red-100 py-2 px-3 rounded-md">
-                <span>
-                  {song.title} by {song.artist} ({song.streaming_service})
-                </span>
-                {isDJ && (
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => handleSongStatus(song.id, "accepted")}
-                  >
-                    Re-accept
-                  </Button>
-                )}
-              </li>
+              <QueueTrackCard
+                key={song.id}
+                song={song}
+                isDJ={isDJ}
+                onStatusChange={handleSongStatus}
+                onDelete={handleDeleteSong}
+              />
             ))}
-          </ul>
+          </div>
         </div>
       )}
     </div>

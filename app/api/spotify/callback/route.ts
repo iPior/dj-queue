@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { SpotifyTokens } from '@/lib/types';
+import { updateConnectedService } from '@/lib/spotify-utils';
 
 const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
@@ -45,27 +47,18 @@ export async function GET(request: NextRequest) { console.log('Spotify callback 
       throw new Error('Failed to exchange code for tokens');
     }
 
-    const tokens = await tokenResponse.json();
-    const expiresAt = Date.now() + (tokens.expires_in * 1000);
+    const tokens: SpotifyTokens = await tokenResponse.json();
 
-    // Store tokens in user profile
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({
-        connected_services: {
-          spotify: {
-            access_token: tokens.access_token,
-            refresh_token: tokens.refresh_token,
-            expires_at: expiresAt,
-            connected: true,
-          }
-        },
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', user.id);
+    const spotifyData = {
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
+      expires_in: tokens.expires_in,
+      connected: true,
+    };
 
-    if (updateError) {
-      throw updateError;
+    const updateSuccess = await updateConnectedService(user.id, 'spotify', spotifyData);
+    if (!updateSuccess) {
+      throw new Error('Failed to update Spotify connection');
     }
 
     return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/profile?success=spotify_connected`);

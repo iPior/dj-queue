@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { NewSong, Queue, SpotifyTrack } from "@/lib/types";
+import { Queue, SpotifyTrack } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Music, Play, Plus } from "lucide-react";
+import { TrackCard, TrackCardData } from "@/components/track-card";
+import { Music } from "lucide-react";
 
 interface SpotifySearchProps {
   queue: Queue;
@@ -22,6 +22,15 @@ export function SpotifySearch({ queue, isSpotifyConnected }: SpotifySearchProps)
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string>("");
 
+  const convertSpotifyTrackToCardData = (track: SpotifyTrack): TrackCardData => ({
+    id: track.id,
+    title: track.name,
+    artist: track.artists.map(a => a.name).join(", "),
+    album: track.album.name,
+    imageUrl: track.album.images[0]?.url,
+    imageAlt: track.album.name,
+  });
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim() || !isSpotifyConnected) return;
@@ -30,7 +39,7 @@ export function SpotifySearch({ queue, isSpotifyConnected }: SpotifySearchProps)
     setError("");
 
     try {
-      const response = await fetch(`/api/spotify/search?q=${encodeURIComponent(searchQuery)}&limit=10`);
+      const response = await fetch(`/api/spotify/search?q=${encodeURIComponent(searchQuery)}&limit=3`);
       
       if (!response.ok) {
         throw new Error('Search failed');
@@ -46,15 +55,16 @@ export function SpotifySearch({ queue, isSpotifyConnected }: SpotifySearchProps)
     }
   };
 
-  const handleAddSong = async (track: SpotifyTrack) => {
+
+  const handleAddSong = async (trackData: TrackCardData) => {
     setIsSubmitting(true);
     setError("");
 
     try {
       const { error: insertError } = await supabase.from("songs").insert({
         queue_id: queue.id,
-        title: track.name,
-        artist: track.artists.map(a => a.name).join(", "),
+        title: trackData.title,
+        artist: trackData.artist,
         streaming_service: "Spotify",
         status: "pending",
       });
@@ -63,8 +73,7 @@ export function SpotifySearch({ queue, isSpotifyConnected }: SpotifySearchProps)
         setError("Failed to add song. Please try again.");
         console.error("Error adding song:", insertError);
       } else {
-        // Remove the added song from search results
-        setSearchResults(prev => prev.filter(t => t.id !== track.id));
+        setSearchResults([]);
       }
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
@@ -78,7 +87,7 @@ export function SpotifySearch({ queue, isSpotifyConnected }: SpotifySearchProps)
     return (
       <div className="w-full">
         <Card className="p-4 text-center">
-          <Music className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+          <Music className="w-12 h-12 mx-auto mb-2 text-muted-foreground" />
           <h3 className="font-semibold mb-2">Connect Spotify to Search Songs</h3>
           <p className="text-sm text-muted-foreground mb-4">
             Connect your Spotify account to search and add songs directly from Spotify's catalog.
@@ -93,72 +102,38 @@ export function SpotifySearch({ queue, isSpotifyConnected }: SpotifySearchProps)
 
   return (
     <div className="w-full">
-      <form onSubmit={handleSearch} className="flex items-center mb-4">
-        <Label htmlFor="spotify-search"/>
-        <Input
-          id="spotify-search"
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          placeholder="Search songs on Spotify..."
-          required
-          className="mr-2 h-12 bg-white"
-          disabled={isSearching}
-        />
-        <Button type="submit" disabled={isSearching || !searchQuery.trim()} className="h-12">
-          {isSearching ? "Searching..." : "Search"}
-        </Button>
-      </form>
-
-      {error && (
-        <p className="text-red-500 text-sm mb-4">{error}</p>
-      )}
-
+      <div className="mb-4">
+        <h2 className="text-2xl font-bold">Search for Songs</h2>
+        <p className="text-muted-foreground mb-4">
+          Search for songs and add them to your queue.
+        </p>
+        <form onSubmit={handleSearch} className="flex items-center gap-2">
+          <Input
+            id="spotify-search"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Search for songs, artists, or albums..."
+            required
+            className="h-12 bg-white flex-1"
+            disabled={isSearching}
+          />
+          <Button type="submit" disabled={isSearching || !searchQuery.trim()} className="h-12 px-6">
+            {isSearching ? "Searching..." : "Search"}
+          </Button>
+        </form>
+        {error && (
+          <p className="text-destructive text-sm">{error}</p>
+        )}
+      </div>
       {searchResults.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="font-semibold">Search Results</h3>
+        <div className="space-y-4">
           {searchResults.map((track) => (
-            <Card key={track.id} className="p-3">
-              <div className="flex items-center gap-3">
-                {track.album.images[0] && (
-                  <img
-                    src={track.album.images[0].url}
-                    alt={track.album.name}
-                    className="w-12 h-12 rounded object-cover"
-                  />
-                )}
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-medium truncate">{track.name}</h4>
-                  <p className="text-sm text-muted-foreground truncate">
-                    {track.artists.map(a => a.name).join(", ")}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {track.album.name}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {track.preview_url && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const audio = new Audio(track.preview_url);
-                        audio.play();
-                      }}
-                    >
-                      <Play className="w-4 h-4" />
-                    </Button>
-                  )}
-                  <Button
-                    size="sm"
-                    onClick={() => handleAddSong(track)}
-                    disabled={isSubmitting}
-                  >
-                    <Plus className="w-4 h-4 mr-1" />
-                    Add
-                  </Button>
-                </div>
-              </div>
-            </Card>
+            <TrackCard
+              key={track.id}
+              track={convertSpotifyTrackToCardData(track)}
+              onAdd={handleAddSong}
+              isAdding={isSubmitting}
+            />
           ))}
         </div>
       )}

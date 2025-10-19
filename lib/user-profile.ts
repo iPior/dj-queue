@@ -11,6 +11,14 @@ export interface UserProfile {
   onboarded: boolean;
   created_at: string;
   updated_at: string;
+  connected_services: {
+    [key: string]: {
+      access_token: string;
+      refresh_token: string;
+      expires_in: number;
+      connected: boolean;
+    } | null;
+  };
 }
 
 export async function getUserProfile(userId: string): Promise<UserProfile | null> {

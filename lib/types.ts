@@ -19,14 +19,44 @@ export interface Song {
   id: string;
   queue_id: string;
   title: string;
-  artist?: string | null;
-  streaming_service?: string | null;
+  artist?: string | "";
+  streaming_service?: string | "";
   status: SongStatus;
   created_at: string;
 }
 
-export interface NewSong {
-  title: string;
-  artist?: string | null;
-  streaming_service?: string | null;
+export interface SpotifyTokens {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+}
+
+export interface SpotifyTrack {
+  id: string;
+  name: string;
+  artists: Array<{
+    id: string;
+    name: string;
+  }>;
+  album: {
+    id: string;
+    name: string;
+    images: Array<{
+      url: string;
+      height: number;
+      width: number;
+    }>;
+  };
+  duration_ms: number;
+  external_urls: {
+    spotify: string;
+  };
+  preview_url?: string;
+}
+
+export interface SpotifySearchResponse {
+  tracks: {
+    items: SpotifyTrack[];
+    total: number;
+  };
 }

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { UserProfile } from "@/lib/user-profile";
 import { PencilLine } from 'lucide-react';
+import { SpotifyConnection } from "@/components/spotify-connection";
 
 export function ProfileForm({ profile }: { profile: UserProfile }) {
   const [isEditMode, setIsEditMode] = useState(false);
@@ -135,10 +136,12 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
     }
   };
 
+  const handleSpotifyUpdate = () => { window.location.reload(); };
+
   
   return (
-    <div className="w-full">
-      <div className="mb-4">
+    <div className="w-full gap-4 flex flex-col">
+      <div className="">
         <h1 className="text-3xl font-bold flex items-center justify-between gap-2">
           <span>Your Profile</span>
           {!isEditMode && (
@@ -149,6 +152,9 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
           
         </h1>
       </div>
+      
+      {/* Spotify Connection Section */}
+
       <Card className="p-4">
           <form onSubmit={handleProfileUpdate}>
             <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
@@ -259,7 +265,7 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
                   />  
                 </div>
                 <div className="w-full">
-                  <Label>Preferred Streaming Services</Label>
+                  <Label>Search Streaming Services</Label>
                   <div className="flex flex-col gap-2 mt-2">
                     <div className="flex items-center space-x-2">
                       <Checkbox
@@ -300,6 +306,10 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
             </div>
           </form>
       </Card>
+
+      <div className="">
+        <SpotifyConnection profile={profile} onUpdate={handleSpotifyUpdate} />
+      </div>
     </div>
   );
 }

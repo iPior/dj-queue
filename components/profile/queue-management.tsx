@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { QueueCreationDialog } from "@/components/queue-creation-dialog";
-import { PastQueueCard } from "@/components/past-queue-card";
+import { QueueCreationDialog } from "@/components/profile/queue-creation-dialog";
+import { PastQueueCard } from "@/components/profile/past-queue-card";
 
 
 export function QueueManagement() {

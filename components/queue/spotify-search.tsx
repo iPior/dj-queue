@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Queue, SpotifyTrack } from "@/lib/types";
+import { Queue, SpotifyTrack, Track } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { TrackCard, TrackCardData } from "@/components/track-card";
+import { TrackCard } from "@/components/track-card";
 import { Music } from "lucide-react";
 
 interface SpotifySearchProps {
@@ -22,13 +22,15 @@ export function SpotifySearch({ queue, isSpotifyConnected }: SpotifySearchProps)
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string>("");
 
-  const convertSpotifyTrackToCardData = (track: SpotifyTrack): TrackCardData => ({
+  const convertSpotifyTrackToTrack = (track: SpotifyTrack): Track => ({
     id: track.id,
     title: track.name,
     artist: track.artists.map(a => a.name).join(", "),
     album: track.album.name,
-    imageUrl: track.album.images[0]?.url,
-    imageAlt: track.album.name,
+    image_url: track.album.images[0]?.url || "",
+    image_alt: track.album.name,
+    created_at: new Date().toISOString(),
+    streaming_service: "spotify",
   });
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -56,16 +58,20 @@ export function SpotifySearch({ queue, isSpotifyConnected }: SpotifySearchProps)
   };
 
 
-  const handleAddSong = async (trackData: TrackCardData) => {
+  const handleAddSong = async (track: Track) => {
     setIsSubmitting(true);
     setError("");
 
     try {
-      const { error: insertError } = await supabase.from("songs").insert({
+      const { error: insertError } = await supabase.from("tracks").insert({
         queue_id: queue.id,
-        title: trackData.title,
-        artist: trackData.artist,
-        streaming_service: "Spotify",
+        title: track.title,
+        artist: track.artist,
+        album: track.album,
+        image_url: track.image_url,
+        image_alt: track.image_alt,
+        created_at: track.created_at,
+        streaming_service: "spotify",
         status: "pending",
       });
       
@@ -126,11 +132,11 @@ export function SpotifySearch({ queue, isSpotifyConnected }: SpotifySearchProps)
         )}
       </div>
       {searchResults.length > 0 && (
-        <div className="space-y-4">
+        <div className="space-y-2">
           {searchResults.map((track) => (
             <TrackCard
               key={track.id}
-              track={convertSpotifyTrackToCardData(track)}
+              track={convertSpotifyTrackToTrack(track)}
               onAdd={handleAddSong}
               isAdding={isSubmitting}
             />

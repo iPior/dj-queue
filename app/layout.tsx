@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
-import { Header } from "@/components/header";
+import { Header } from "@/components/layout/header";
 import { Toaster } from "@/components/ui/sonner"
 import "./globals.css";
 

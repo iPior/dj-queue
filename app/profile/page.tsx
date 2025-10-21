@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUserProfile } from "@/lib/user-profile";
-import { ProfileForm } from "@/components/profile-form";
-import { QueueManagement } from "@/components/queue-management";
+import { getCurrentUserProfile } from "@/lib/user-utils";
+import { ProfileForm } from "@/components/profile/profile-form";
+import { QueueManagement } from "@/components/profile/queue-management";
 
 export default async function ProfilePage() {
   const supabase = await createClient();

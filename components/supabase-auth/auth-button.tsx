@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { LogoutButton } from "./logout-button";
-import { getUserProfile } from "@/lib/user-profile";
+import { getUserProfile } from "@/lib/user-utils";
 import { User } from "lucide-react"
 import Image from "next/image";
 

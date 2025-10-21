@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { UserProfile } from "@/lib/user-profile";
+import { UserProfile } from "@/lib/types";
 import { Music, X } from "lucide-react";
 
 interface SpotifyConnectionProps {

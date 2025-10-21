@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AuthButton } from "./supabase-auth/auth-button";
+import { AuthButton } from "@/components/supabase-auth/auth-button";
 
 export function Header() {
   return (

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Queue } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
-import { SpotifySearch } from "@/components/spotify-search";
+import { SpotifySearch } from "@/components/queue/spotify-search";
 
 export default function Search({ queue }: { queue: Queue }) {
   const supabase = createClient();

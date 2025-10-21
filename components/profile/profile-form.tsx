@@ -7,9 +7,9 @@ import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserProfile } from "@/lib/user-profile";
+import { UserProfile } from "@/lib/types";
 import { PencilLine } from 'lucide-react';
-import { SpotifyConnection } from "@/components/spotify-connection";
+import { SpotifyConnection } from "@/components/profile/spotify-connection";
 
 export function ProfileForm({ profile }: { profile: UserProfile }) {
   const [isEditMode, setIsEditMode] = useState(false);

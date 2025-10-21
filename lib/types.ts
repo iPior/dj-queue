@@ -1,4 +1,19 @@
 export type SongStatus = "pending" | "accepted" | "rejected" | "played";
+export type StreamingService = "spotify" | "apple-music" | "soundcloud";
+
+export interface Track {
+  id: string;
+  title: string;
+  artist: string;
+  album?: string;
+  image_url: string | "";
+  image_alt: string | "";
+  // Optional fields for queue mode
+  status?: SongStatus;
+  queue_id?: string;
+  streaming_service?: StreamingService;
+  created_at: string;
+}
 
 export interface Queue {
   id: string;
@@ -10,19 +25,25 @@ export interface Queue {
   created_at: string;
 }
 
-export interface User {
+export interface UserProfile {
   id: string;
-  // add other fields if needed
-}
-
-export interface Song {
-  id: string;
-  queue_id: string;
-  title: string;
-  artist?: string | "";
-  streaming_service?: string | "";
-  status: SongStatus;
+  username: string;
+  display_name: string | null;
+  bio: string | null;
+  email: string;
+  avatar_url: string | null;
+  streaming_services: string[] | null;
+  onboarded: boolean;
   created_at: string;
+  updated_at: string;
+  connected_services: {
+    [key: string]: {
+      access_token: string;
+      refresh_token: string;
+      expires_in: number;
+      connected: boolean;
+    } | null;
+  };
 }
 
 export interface SpotifyTokens {

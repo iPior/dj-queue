@@ -1,25 +1,5 @@
+import { UserProfile } from "@/lib/types";
 import { createClient } from "@/lib/supabase/server";
-
-export interface UserProfile {
-  id: string;
-  username: string;
-  display_name: string | null;
-  bio: string | null;
-  email: string;
-  avatar_url: string | null;
-  streaming_services: string[] | null;
-  onboarded: boolean;
-  created_at: string;
-  updated_at: string;
-  connected_services: {
-    [key: string]: {
-      access_token: string;
-      refresh_token: string;
-      expires_in: number;
-      connected: boolean;
-    } | null;
-  };
-}
 
 export async function getUserProfile(userId: string): Promise<UserProfile | null> {
   const supabase = await createClient();

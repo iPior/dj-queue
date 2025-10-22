@@ -1,10 +1,11 @@
-import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
-import { LogoutButton } from "./logout-button";
-import { getUserProfile } from "@/lib/user-utils";
-import { User } from "lucide-react"
-import Image from "next/image";
+"use client";
 
+import Link from "next/link";
+import Image from "next/image";
+import { createClient } from "@/lib/supabase/client";
+import { LogoutButton } from "./logout-button";
+import { UserProfile } from "@/lib/types";
+import { User } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,31 +15,72 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ThemeSwitcher } from "./theme-switcher";
+import { useEffect, useState } from "react";
 
+export function AuthButton() {
+  const supabase = createClient();
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
 
-export async function AuthButton() {
-  const supabase = await createClient();
+  // Client-side function to fetch user profile
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
 
-  // You can also use getUser() which will be slower.
-  const { data } = await supabase.auth.getClaims();
+      if (!error && data) {
+        setUser(data);
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
 
-  const user = data?.claims;
-  
+  useEffect(() => {
+    const getInitialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        await fetchUserProfile(session.user.id);
+      }
+      setLoading(false);
+    };
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session?.user) {
+          await fetchUserProfile(session.user.id);
+        } else {
+          setUser(null);
+        }
+        setLoading(false);
+      }
+    );
+
+    getInitialSession();
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (loading) {
+    return null; // or a loading spinner
+  }
+
   if (!user) {
     return null;
   }
 
-  // Get user profile to display username
-  const profile = await getUserProfile(user.sub);
-  const displayName = profile?.username || profile?.display_name;
+  const displayName = user?.username || user?.display_name;
   
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="hover:cursor-pointer" asChild>
         {/* <div className="rounded-full overflow-hidden"> */}
-          {profile?.avatar_url ? 
+          {user?.avatar_url ? 
           <Image 
-            src={profile.avatar_url} 
+            src={user.avatar_url} 
             alt={displayName || "User Avatar"} 
             width={50} 
             height={50}

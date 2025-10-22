@@ -28,3 +28,17 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
 
   return getUserProfile(user.id);
 }
+
+export async function checkAdminStatus(): Promise<boolean> {
+  const supabase = await createClient();
+  
+  const {
+    data: { session },
+    error,
+  } = await supabase.auth.getSession();
+
+  if (error || !session) {
+    return false;
+  }
+  return true;
+}

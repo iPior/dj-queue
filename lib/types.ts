@@ -34,6 +34,7 @@ export interface UserProfile {
   avatar_url: string | null;
   streaming_services: string[] | null;
   onboarded: boolean;
+  active_queue: string | null;
   created_at: string;
   updated_at: string;
   connected_services: {

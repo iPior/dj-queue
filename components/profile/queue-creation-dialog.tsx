@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/dialog";
 import { generateShortId } from '@/lib/utils';
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { UserProfile } from "@/lib/types";
 
 interface QueueCreationDialogProps {
   onQueueCreated?: () => void;
@@ -27,18 +29,37 @@ export function QueueCreationDialog({ onQueueCreated }: QueueCreationDialogProps
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [doesDJHaveActiveQueue, setDoesDJHaveActiveQueue] = useState<boolean>(false);
   const router = useRouter();
+
+  useEffect(() => {
+    async function fetchData() {
+      const supabase = createClient();
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      const { data, error: doesDJHaveActiveQueueError } = await supabase
+        .from('profiles')
+        .select('active_queue')
+        .eq('id', user.id)
+        .single();
+      if (doesDJHaveActiveQueueError) throw doesDJHaveActiveQueueError;
+      setDoesDJHaveActiveQueue(data.active_queue !== null ? true : false);
+    }
+    fetchData();
+    setUser(user);
+  }, []);
 
   const handleCreateQueue = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
-
     const supabase = createClient();
 
-    try {
-    // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
+  try {
+
     if (!user) throw new Error("User not authenticated");
 
     // Generate a unique code for the queue
@@ -67,8 +88,16 @@ export function QueueCreationDialog({ onQueueCreated }: QueueCreationDialogProps
       .select()
       .single();
 
-    if (data) router.push(`/queue/${data.code}`);
     if (error) throw error;
+
+    // Update user's profile to set this queue as their active queue
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ active_queue: code })
+      .eq('id', user.id);
+
+    if (updateError) throw updateError;
+    if (data) router.push(`/queue/${data.code}`);
 
     // Reset form and close dialog
     setQueueName("");
@@ -88,8 +117,8 @@ export function QueueCreationDialog({ onQueueCreated }: QueueCreationDialogProps
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="w-full" size="lg">
-          Create Queue
+        <Button className="w-full" size="lg" disabled={doesDJHaveActiveQueue}>
+          {doesDJHaveActiveQueue ? "You already have an active queue" : "Create Queue"}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">

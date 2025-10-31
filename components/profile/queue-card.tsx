@@ -18,7 +18,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-
 import { 
   Card, 
   CardContent, 
@@ -28,7 +27,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-export function PastQueueCard() {
+export function QueueCard() {
   const supabase = createClient();
   const router = useRouter();
   const [queue, setQueue] = useState<Queue[]>();
@@ -54,55 +53,66 @@ export function PastQueueCard() {
 
   const handleDeactivateButton = async (queueId: string) => {
     try {
-      const { error } = await supabase
+      const { error: deactivateError } = await supabase
         .from('queues')
         .update({ status: 'inactive' })
         .eq('id', queueId);
 
-      if (error) {
-        console.error('Error deactivating queue:', error);
-        return;
-      }
+      if (deactivateError) return;
 
       // Refresh the queue list
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+
+      const { error: ProfileError } = await supabase
+        .from('profiles')
+        .update({ active_queue: null })
+        .eq('id', user.id);
+      if (ProfileError) return;
+
+      toast.success('Queue deactivated');
+
+      // Refresh the queue list
       const { data: queueData } = await supabase
         .from("queues")
         .select("*")
         .eq("dj_id", user.id);
       setQueue(queueData as Queue[]);
-      toast.success('Queue deactivated');
+
     } catch (error) {
       console.error('Error deactivating queue:', error);
     }
   }
 
-  const handleActivateButton = async (queueId: string) => {
+  const handleReactivateButton = async (queueId: string) => {
     try {
-      const { error } = await supabase
+      const { error: reactivateError } = await supabase
         .from('queues')
         .update({ status: 'active' })
         .eq('id', queueId);
-
-      if (error) {
-        console.error('Error activating queue:', error);
-        return;
-      }
+      if (reactivateError) return;
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      
+      const { error: ProfileError } = await supabase
+      .from('profiles')
+      .update({ active_queue: queueId })
+      .eq('id', user.id);
+      if (ProfileError) return;
 
+      toast.success('Queue reactivated');
+
+      // Refresh the queue list
       const { data: queueData } = await supabase
         .from("queues")
         .select("*")
         .eq("dj_id", user.id);
       setQueue(queueData as Queue[]);
-      toast.success('Queue activated');
     }
     catch (error) {
-      console.error('Error activating queue:', error);
+      console.error('Error reactivating queue:', error);
     }
   }
 
@@ -149,10 +159,8 @@ export function PastQueueCard() {
             <CardContent className="flex-grow flex flex-col justify-end">
               <div className="flex gap-2">
                 <Button onClick={() => handleViewButton(q.code)}>View</Button>
-                {q.status === 'active' ?
-                  <Button onClick={() => handleDeactivateButton(q.id)}>Deactivate</Button> : 
-                  <Button onClick={() => handleActivateButton(q.id)}>Activate</Button>
-                }
+                {q.status === 'active' && <Button onClick={() => handleDeactivateButton(q.id)}>Deactivate</Button> }
+                {q.status === 'inactive' && <Button onClick={() => handleReactivateButton(q.id)}>Reactivate</Button> }
                 <AlertDialog>
                   <AlertDialogTrigger>
                     Delete

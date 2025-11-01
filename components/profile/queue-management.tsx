@@ -35,7 +35,6 @@ export function QueueManagement() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {/* This will be filled with past queues */}
                 <QueueCard/>
               </CardContent>
             </Card>

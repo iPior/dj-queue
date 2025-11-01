@@ -40,7 +40,7 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
 
-  if (request.nextUrl.pathname.startsWith('/queue')) {
+  if (request.nextUrl.pathname.startsWith('/queue') || request.nextUrl.pathname.startsWith('/dj')) {
     return NextResponse.next();
   }
 

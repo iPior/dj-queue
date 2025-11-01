@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { UserProfile } from "@/lib/types";
 import { Music, X } from "lucide-react";
+import { BrandLogo } from "../brand-logo";
 
 interface SpotifyConnectionProps {
   profile: UserProfile;
@@ -41,9 +42,7 @@ export function SpotifyConnection({ profile, onUpdate }: SpotifyConnectionProps)
     <Card className="p-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-            <Music className="w-5 h-5 text-white" />
-          </div>
+          <BrandLogo brand="spotify" variant="primary" size="lg" />
           <div>
             <h3 className="font-semibold">Spotify</h3>
             <p className="text-sm text-muted-foreground">

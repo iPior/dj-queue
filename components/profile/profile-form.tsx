@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { UserProfile } from "@/lib/types";
 import { PencilLine } from 'lucide-react';
 import { SpotifyConnection } from "@/components/profile/spotify-connection";
+import { DJQRCode } from "@/components/profile/dj-qr-code";
 
 export function ProfileForm({ profile }: { profile: UserProfile }) {
   const [isEditMode, setIsEditMode] = useState(false);
@@ -260,11 +261,11 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
                     placeholder="Tell us a bit about yourself..."
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
-                    className={`min-h-[80px] flex items-start resize-none ${!isEditMode ? 'bg-muted' : ''}`}
+                    className={`min-h-[180px] flex items-start resize-none ${!isEditMode ? 'bg-muted' : ''}`}
                     disabled={!isEditMode}
                   />  
                 </div>
-                <div className="w-full">
+                {/* <div className="w-full">
                   <Label>Search Streaming Services</Label>
                   <div className="flex flex-col gap-2 mt-2">
                     <div className="flex items-center space-x-2">
@@ -301,7 +302,7 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
                       </Label>
                     </div>
                   </div>
-                </div>
+                </div> */}
               </div>
             </div>
           </form>
@@ -309,6 +310,10 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
 
       <div className="">
         <SpotifyConnection profile={profile} onUpdate={handleSpotifyUpdate} />
+      </div>
+
+      <div className="">
+        <DJQRCode userId={profile.id} />
       </div>
     </div>
   );

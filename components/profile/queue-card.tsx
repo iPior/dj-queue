@@ -97,9 +97,9 @@ export function QueueCard() {
       if (!user) return;
       
       const { error: ProfileError } = await supabase
-      .from('profiles')
-      .update({ active_queue: queueId })
-      .eq('id', user.id);
+        .from('profiles')
+        .update({ active_queue: queueId })
+        .eq('id', user.id);
       if (ProfileError) return;
 
       toast.success('Queue reactivated');

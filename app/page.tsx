@@ -12,10 +12,10 @@ export default async function Home() {
       <div className="w-1/3 space-y-4">
         {/* header */}
         <div className="mb-2">
-          <h1 className="text-4xl font-bold">Join a Queue</h1>
-          <p className="text-muted-foreground text-xl">
+          <h1 className="text-4xl font-bold">Join a party!</h1>
+          {/* <p className="text-muted-foreground text-xl">
             Search and join active DJ queues to request songs
-          </p>
+          </p> */}
         </div>
         
         <HomeSearch />

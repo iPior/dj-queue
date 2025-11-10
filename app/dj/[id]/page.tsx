@@ -5,15 +5,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 export default async function DJRedirectPage({
   params,
 }: {
-  params: Promise<{ djId: string }>;
+  params: Promise<{ id: string }>;
 }) {
-  const { djId } = await params;
+  const { id: dj_id } = await params;
   const supabase = await createClient();
 
   const { data: queue, error } = await supabase
     .from("queues")
     .select("code")
-    .eq("dj_id", djId)
+    .eq("dj_id", dj_id)
     .eq("status", "active")
     .single();  
 

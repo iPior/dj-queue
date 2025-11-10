@@ -14,14 +14,18 @@ export default function QueuePage() {
 
   useEffect(() => {
     async function fetchData() {
-      const { data: queueData } = await supabase
+      const { data: queueData, error } = await supabase
       .from("queues")
       .select("*")
         .eq("code", slug)
         .single();
-        setQueue(queueData as Queue);
+      if (error) throw error;
+      if (!queueData) throw new Error("Queue not found");
+      setQueue(queueData as Queue);
+      console.log(queueData);
       }
       fetchData();
+      
     }, [slug]);
 
     // maybe make this a redirection to a page that says the queue does not exist

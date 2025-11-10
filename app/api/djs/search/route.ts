@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { UserProfile } from '@/lib/types';
 
+interface DJSearchResult {
+  id: string;
+  display_name: string | null;
+  avatar_url: string | null;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -14,13 +20,12 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient();
     const searchTerm = `%${query.trim()}%`;
 
-    // Search for profiles by display_name or username
-    // Make two queries and combine results to avoid issues with .or() syntax
     const { data: displayNameResults, error: displayNameError } = await supabase
-        .from('profiles')
-        .select(`*`)
-        .ilike('display_name', searchTerm)
-        .limit(15)
+      .from('public_profiles')
+      .select(`*`)
+      .ilike('display_name', searchTerm)
+      .limit(15)
+      console.log("Display name results:", displayNameResults);
 
     if (displayNameError) {
       console.error('Error searching profiles:', displayNameError);
@@ -32,7 +37,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get active queue details for each DJ
-    const djIds = displayNameResults.map((profile: UserProfile) => profile.id);
+    const djIds = displayNameResults.map((profile: DJSearchResult) => profile.id);
 
     const { data: queues, error: queueError } = await supabase
       .from('queues')

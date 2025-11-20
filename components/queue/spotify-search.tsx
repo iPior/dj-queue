@@ -5,16 +5,13 @@ import { Queue, SpotifyTrack, Track } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { TrackCard } from "@/components/track-card";
-import { Music } from "lucide-react";
+import { SearchTrackCard } from "@/components/search-track-card";
 
 interface SpotifySearchProps {
   queue: Queue;
-  isSpotifyConnected: boolean;
 }
 
-export function SpotifySearch({ queue, isSpotifyConnected }: SpotifySearchProps) {
+export function SpotifySearch({ queue }: SpotifySearchProps) {
   const supabase = createClient();
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [searchResults, setSearchResults] = useState<SpotifyTrack[]>([]);
@@ -35,16 +32,22 @@ export function SpotifySearch({ queue, isSpotifyConnected }: SpotifySearchProps)
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!searchQuery.trim() || !isSpotifyConnected) return;
+    if (!searchQuery.trim()) return;
     
     setIsSearching(true);
     setError("");
 
     try {
-      const response = await fetch(`/api/spotify/search?q=${encodeURIComponent(searchQuery)}&limit=3`);
+      const response = await fetch(`/api/spotify/search/queue?q=${encodeURIComponent(searchQuery)}&limit=3`);
       
       if (!response.ok) {
-        throw new Error('Search failed');
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 503) {
+          setError("Spotify service is temporarily unavailable. Please try again later.");
+        } else {
+          setError("Failed to search songs. Please try again.");
+        }
+        return;
       }
 
       const data = await response.json();
@@ -63,7 +66,7 @@ export function SpotifySearch({ queue, isSpotifyConnected }: SpotifySearchProps)
     setError("");
 
     try {
-      const { error: insertError } = await supabase.from("tracks").insert({
+      const { error: insertError } = await supabase.from("tracks").insert({ 
         queue_id: queue.id,
         title: track.title,
         artist: track.artist,
@@ -88,23 +91,6 @@ export function SpotifySearch({ queue, isSpotifyConnected }: SpotifySearchProps)
       setIsSubmitting(false);
     }
   };
-
-  if (!isSpotifyConnected) {
-    return (
-      <div className="w-full">
-        <Card className="p-4 text-center">
-          <Music className="w-12 h-12 mx-auto mb-2 text-muted-foreground" />
-          <h3 className="font-semibold mb-2">Connect Spotify to Search Songs</h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            Connect your Spotify account to search and add songs directly from Spotify's catalog.
-          </p>
-          <Button onClick={() => window.location.href = '/profile'}>
-            Go to Profile to Connect
-          </Button>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="w-full">
@@ -134,11 +120,10 @@ export function SpotifySearch({ queue, isSpotifyConnected }: SpotifySearchProps)
       {searchResults.length > 0 && (
         <div className="space-y-2">
           {searchResults.map((track) => (
-            <TrackCard
+            <SearchTrackCard
               key={track.id}
               track={convertSpotifyTrackToTrack(track)}
               onAdd={handleAddSong}
-              isAdding={isSubmitting}
             />
           ))}
         </div>

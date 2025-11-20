@@ -27,6 +27,8 @@
 
   --color-container: var(--color-black);
   --color-container-foreground: var(--color-slate-950);
+
+  --color-destructive: var(--color-red-600);
 }
 
 @layer theme {

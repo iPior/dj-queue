@@ -44,6 +44,9 @@ export async function updateConnectedService(userId: string, serviceName: string
 const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
 
+// In-memory cache for app-level access token
+let appAccessTokenCache: { token: string; expiresAt: number } | null = null;
+
 async function refreshSpotifyToken(refreshToken: string): Promise<SpotifyTokens | null> {
   if (!SPOTIFY_CLIENT_ID || !SPOTIFY_CLIENT_SECRET) {
     console.error('Spotify client credentials not configured');
@@ -115,6 +118,7 @@ export async function getValidSpotifyAccessToken(userId: string): Promise<string
     .select('connected_services')
     .eq('id', userId)
     .single();
+  console.log(profile);
   const spotifyToken = profile?.connected_services?.spotify;
 
   if (!spotifyToken || !spotifyToken.access_token) {
@@ -148,4 +152,53 @@ export async function getValidSpotifyAccessToken(userId: string): Promise<string
   }
 
   return spotifyToken.access_token;
+}
+
+/**
+ * Gets an app-level Spotify access token using Client Credentials flow.
+ * This token can be used for searching tracks without requiring user authentication.
+ * The token is cached in memory to avoid unnecessary API calls.
+ */
+export async function getAppSpotifyAccessToken(): Promise<string | null> {
+  if (!SPOTIFY_CLIENT_ID || !SPOTIFY_CLIENT_SECRET) {
+    console.error('Spotify client credentials not configured');
+    return null;
+  }
+
+  // Check if we have a valid cached token
+  if (appAccessTokenCache && Date.now() < appAccessTokenCache.expiresAt) {
+    return appAccessTokenCache.token;
+  }
+
+  try {
+    const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${Buffer.from(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`).toString('base64')}`,
+      },
+      body: new URLSearchParams({
+        grant_type: 'client_credentials',
+      }),
+    });
+
+    if (!tokenResponse.ok) {
+      console.error('Failed to get app Spotify token:', tokenResponse.status, tokenResponse.statusText);
+      return null;
+    }
+
+    const tokenData: { access_token: string; expires_in: number } = await tokenResponse.json();
+    
+    // Cache the token with a 5-minute buffer before expiration
+    const bufferTime = 5 * 60 * 1000; // 5 minutes in milliseconds
+    appAccessTokenCache = {
+      token: tokenData.access_token,
+      expiresAt: Date.now() + (tokenData.expires_in * 1000) - bufferTime,
+    };
+
+    return tokenData.access_token;
+  } catch (error) {
+    console.error('Error getting app Spotify token:', error);
+    return null;
+  }
 }

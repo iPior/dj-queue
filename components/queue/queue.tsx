@@ -3,8 +3,9 @@
 import { createClient } from "@/lib/supabase/client";
 import { Queue, SongStatus, Track } from "@/lib/types";
 import { User } from "@supabase/supabase-js";
-import { TrackCard } from "@/components/track-card";
+import { QueueTrackCard } from "@/components/queue-track-card";
 import { useState, useEffect } from "react";
+import { Separator } from "@/components/ui/separator";
 
 export default function QueueComponent({ 
   queue,
@@ -61,6 +62,7 @@ export default function QueueComponent({
   const isDJ = Boolean(user && user.id === queue?.dj_id);
 
   async function handleTrackStatus(trackId:string, status:SongStatus) {
+    console.log("handleTrackStatus", trackId, status);
     if (!queue) return; 
     const { error } = await supabase.from("tracks").update({ status }).eq("id", trackId);
     
@@ -83,6 +85,11 @@ export default function QueueComponent({
   // Add a loading component
   if (!queue) return <div>Loading...</div>;
 
+  // Separate tracks into played and not played
+  const playedTracks = tracks.filter(track => track.status === "played");
+  const notPlayedTracks = tracks.filter(track => track.status !== "played" && track.status !== "rejected");
+  const rejectedTracks = tracks.filter(track => track.status === "rejected");
+
   return (
     <div className="w-full flex flex-col bg-card border rounded-lg p-4 gap-2">
       <div className="">
@@ -94,23 +101,60 @@ export default function QueueComponent({
       </div>
 
       {(tracks.length > 0) ? (
-        <div className="mb-4">
-          {/* <h2 className="text-lg font-semibold mb-2 text-gray-700">
-            Queue ({tracks.length})
-          </h2> */}
-          <div className="space-y-2">
-            {tracks.map((track, index) => (
-              <TrackCard
-                key={track.id}
-                track={track}
-                mode="queue"
-                status={track.status}
-                isDJ={isDJ}
-                onStatusChange={handleTrackStatus}
-                onDelete={handleDeleteTrack}
-              />  
-            ))} 
-          </div>
+        <div className="space-y-2">
+          {playedTracks.length > 0 && (
+            <div>
+              {/* <h2 className="text-lg font-semibold mb-3 text-muted-foreground">
+                Played ({playedTracks.length})
+              </h2> */}
+              <div className="space-y-2">
+                {playedTracks.map((track, index) => (
+                  <QueueTrackCard
+                    position={index + 1}
+                    key={track.id}  
+                    track={track}
+                    status={track.status}
+                    isDJ={isDJ}
+                    onStatusChange={handleTrackStatus}
+                    onDelete={handleDeleteTrack}
+                    />  
+                  ))} 
+              </div>
+            </div>
+          )}
+          {notPlayedTracks.length > 0 && (
+            <div className="border-t pt-2">
+              {/* <h2 className="text-lg font-semibold mb-3 text-foreground">
+                Queue ({notPlayedTracks.length})
+              </h2> */}
+              <div className="space-y-2">
+                {notPlayedTracks.map((track, index) => (
+                  <QueueTrackCard
+                    position={index + 1}
+                    key={track.id}  
+                    track={track}
+                    status={track.status}
+                    isDJ={isDJ}
+                    onStatusChange={handleTrackStatus}
+                    onDelete={handleDeleteTrack}
+                  />  
+                ))} 
+              </div>
+            </div>
+          )}
+          {/* <Separator /> */}
+          {rejectedTracks.length > 0 && (
+            <div className="border-t pt-2">
+              {/* <h2 className="text-lg font-semibold mb-3 text-foreground">
+                Rejected ({rejectedTracks.length})
+              </h2> */}
+              <div className="space-y-2">
+                {rejectedTracks.map((track, index) => (
+                  <QueueTrackCard key={track.id} track={track} status={track.status} />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div className="text-muted-foreground">No tracks in queue</div>

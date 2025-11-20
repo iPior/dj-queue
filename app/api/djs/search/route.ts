@@ -25,7 +25,6 @@ export async function GET(request: NextRequest) {
       .select(`*`)
       .ilike('display_name', searchTerm)
       .limit(15)
-      console.log("Display name results:", displayNameResults);
 
     if (displayNameError) {
       console.error('Error searching profiles:', displayNameError);

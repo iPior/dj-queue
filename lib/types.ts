@@ -13,6 +13,7 @@ export interface Track {
   queue_id?: string;
   streaming_service?: StreamingService;
   created_at: string;
+  spotify_track_uri: string;
 }
 
 export interface Queue {
@@ -23,6 +24,7 @@ export interface Queue {
   dj_id: string;
   status: string;
   created_at: string;
+  spotify_playlist_id: string | null;
 }
 
 export interface UserProfile {
@@ -74,6 +76,7 @@ export interface SpotifyTrack {
     spotify: string;
   };
   preview_url?: string;
+  uri: string;
 }
 
 export interface SpotifySearchResponse {

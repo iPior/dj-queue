@@ -28,6 +28,7 @@ export function SpotifySearch({ queue }: SpotifySearchProps) {
     image_alt: track.album.name,
     created_at: new Date().toISOString(),
     streaming_service: "spotify",
+    spotify_track_uri: track.uri,
   });
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -76,6 +77,7 @@ export function SpotifySearch({ queue }: SpotifySearchProps) {
         created_at: track.created_at,
         streaming_service: "spotify",
         status: "pending",
+        spotify_track_uri: track.spotify_track_uri,
       });
       
       if (insertError) {

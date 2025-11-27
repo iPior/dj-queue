@@ -17,7 +17,7 @@ import {
 import { generateShortId } from '@/lib/utils';
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { UserProfile } from "@/lib/types";
+import type { User } from "@supabase/supabase-js";
 
 interface QueueCreationDialogProps {
   onQueueCreated?: () => void;
@@ -29,7 +29,7 @@ export function QueueCreationDialog({ onQueueCreated }: QueueCreationDialogProps
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [doesDJHaveActiveQueue, setDoesDJHaveActiveQueue] = useState<boolean>(false);
   const router = useRouter();
 
@@ -40,6 +40,8 @@ export function QueueCreationDialog({ onQueueCreated }: QueueCreationDialogProps
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       
+      setUser(user);
+      
       const { data, error: doesDJHaveActiveQueueError } = await supabase
         .from('profiles')
         .select('active_queue')
@@ -49,7 +51,6 @@ export function QueueCreationDialog({ onQueueCreated }: QueueCreationDialogProps
       setDoesDJHaveActiveQueue(data.active_queue !== null ? true : false);
     }
     fetchData();
-    setUser(user);
   }, []);
 
   const handleCreateQueue = async (e: React.FormEvent) => {
@@ -74,6 +75,30 @@ export function QueueCreationDialog({ onQueueCreated }: QueueCreationDialogProps
       if (!existing) break;
     }
 
+    // Create Spotify playlist if user has Spotify connected
+    let spotifyPlaylistId: string | null = null;
+    try {
+      const playlistResponse = await fetch('/api/spotify/playlist/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: queueName,
+          description: description || `DJ Queue: ${queueName}`,
+        }),
+      });
+
+      if (playlistResponse.ok) {
+        const playlistData = await playlistResponse.json();
+        spotifyPlaylistId = playlistData.id;
+      } else {
+        console.log('Could not create Spotify playlist (Spotify may not be connected)');
+      }
+    } catch (playlistError) {
+      console.error('Error creating Spotify playlist:', playlistError);
+    }
+
     // Create queue in database
     const { data, error } = await supabase
       .from('queues')
@@ -84,6 +109,7 @@ export function QueueCreationDialog({ onQueueCreated }: QueueCreationDialogProps
         dj_id: user.id,
         status: 'active',
         created_at: new Date().toISOString(),
+        spotify_playlist_id: spotifyPlaylistId,
       })
       .select()
       .single();

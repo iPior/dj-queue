@@ -22,6 +22,8 @@ export async function GET(request: NextRequest) {
       'user-read-email',
       'playlist-read-private',
       'playlist-read-collaborative',
+      'playlist-modify-public',
+      'playlist-modify-private',
       'user-library-read',
       'user-top-read',
       'user-read-playback-state',

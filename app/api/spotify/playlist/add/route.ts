@@ -4,7 +4,7 @@ import { getValidSpotifyAccessToken } from '@/lib/spotify-utils';
 
 interface AddTrackRequest {
   playlistId: string;
-  trackId: string;
+  trackUri: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -17,14 +17,15 @@ export async function POST(request: NextRequest) {
     }
 
     const accessToken = await getValidSpotifyAccessToken(user.id);
+    
     if (!accessToken) {
       return NextResponse.json({ error: 'Spotify not connected' }, { status: 401 });
     }
 
     const body: AddTrackRequest = await request.json();
-    if (!body.playlistId || !body.trackId) {
+    if (!body.playlistId || !body.trackUri) {
       return NextResponse.json({ 
-        error: 'Playlist ID and Track ID are required' 
+        error: 'Playlist ID and Track URI are required' 
       }, { status: 400 });
     }
 
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          uris: [`spotify:track:${body.trackId}`],
+          uris: [body.trackUri],
         }),
       }
     );

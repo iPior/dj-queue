@@ -64,6 +64,38 @@ export default function QueueComponent({
   async function handleTrackStatus(trackId:string, status:SongStatus) {
     console.log("handleTrackStatus", trackId, status);
     if (!queue) return; 
+    
+    // Get current track from database to check if status is actually changing
+    const { data: currentTrackData } = await supabase
+      .from("tracks")
+      .select("status, spotify_track_uri")
+      .eq("id", trackId)
+      .single();
+    
+    const isStatusChangingToAccepted = status === "accepted" && currentTrackData?.status !== "accepted";
+    
+    // If status is being changed to "accepted" and queue has a Spotify playlist, add track to playlist
+    if (isStatusChangingToAccepted && queue.spotify_playlist_id && currentTrackData?.spotify_track_uri) {
+      try {
+        const addResponse = await fetch('/api/spotify/playlist/add', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            playlistId: queue.spotify_playlist_id,
+            trackUri: currentTrackData.spotify_track_uri,
+          }),
+        });
+
+        if (!addResponse.ok) {
+          console.error('Failed to add track to Spotify playlist');
+        }
+      } catch (error) {
+        console.error('Error adding track to Spotify playlist:', error);
+      }
+    }
+    
     const { error } = await supabase.from("tracks").update({ status }).eq("id", trackId);
     
     if (error) {

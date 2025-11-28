@@ -8,7 +8,6 @@ export interface Track {
   album?: string;
   image_url: string | "";
   image_alt: string | "";
-  // Optional fields for queue mode
   status?: SongStatus;
   queue_id?: string;
   streaming_service?: StreamingService;

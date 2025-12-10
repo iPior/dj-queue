@@ -77,6 +77,27 @@ export default function QueueComponent({
     // If status is being changed to "accepted" and queue has a Spotify playlist, add track to playlist
     if (isStatusChangingToAccepted && queue.spotify_playlist_id && currentTrackData?.spotify_track_uri) {
       try {
+        // First, check if the playlist still exists on the user's profile
+        const checkResponse = await fetch('/api/spotify/playlist/check', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            playlistId: queue.spotify_playlist_id,
+          }),
+        });
+
+        const checkData = await checkResponse.json();
+        
+        if (!checkData.exists) {
+          console.error('Spotify playlist no longer exists or is not accessible');
+          await supabase.from('queues').update({ spotify_playlist_id: null }).eq('id', queue.id);
+          // maybe also just delete the queue
+          return;
+        }
+
+        // If playlist exists, add track to it
         const addResponse = await fetch('/api/spotify/playlist/add', {
           method: 'POST',
           headers: {

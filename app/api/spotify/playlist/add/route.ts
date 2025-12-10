@@ -29,6 +29,31 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // First, check if the playlist exists and is accessible
+    const checkPlaylistResponse = await fetch(
+      `https://api.spotify.com/v1/playlists/${body.playlistId}`,
+      {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    if (checkPlaylistResponse.status === 404) {
+      return NextResponse.json({ 
+        error: 'Playlist not found. It may have been deleted.' 
+      }, { status: 404 });
+    }
+
+    if (!checkPlaylistResponse.ok) {
+      const errorText = await checkPlaylistResponse.text();
+      console.error('Spotify API error checking playlist:', errorText);
+      return NextResponse.json({ 
+        error: 'Playlist is not accessible or does not exist' 
+      }, { status: checkPlaylistResponse.status });
+    }
+
     // Add track to playlist
     const addTrackResponse = await fetch(
       `https://api.spotify.com/v1/playlists/${body.playlistId}/tracks`,

@@ -4,7 +4,7 @@ import { getValidSpotifyAccessToken } from '@/lib/spotify-utils';
 
 interface AddTrackRequest {
   playlistId: string;
-  trackId: string;
+  trackUri: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -17,15 +17,41 @@ export async function POST(request: NextRequest) {
     }
 
     const accessToken = await getValidSpotifyAccessToken(user.id);
+    
     if (!accessToken) {
       return NextResponse.json({ error: 'Spotify not connected' }, { status: 401 });
     }
 
     const body: AddTrackRequest = await request.json();
-    if (!body.playlistId || !body.trackId) {
+    if (!body.playlistId || !body.trackUri) {
       return NextResponse.json({ 
-        error: 'Playlist ID and Track ID are required' 
+        error: 'Playlist ID and Track URI are required' 
       }, { status: 400 });
+    }
+
+    // First, check if the playlist exists and is accessible
+    const checkPlaylistResponse = await fetch(
+      `https://api.spotify.com/v1/playlists/${body.playlistId}`,
+      {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    if (checkPlaylistResponse.status === 404) {
+      return NextResponse.json({ 
+        error: 'Playlist not found. It may have been deleted.' 
+      }, { status: 404 });
+    }
+
+    if (!checkPlaylistResponse.ok) {
+      const errorText = await checkPlaylistResponse.text();
+      console.error('Spotify API error checking playlist:', errorText);
+      return NextResponse.json({ 
+        error: 'Playlist is not accessible or does not exist' 
+      }, { status: checkPlaylistResponse.status });
     }
 
     // Add track to playlist
@@ -38,7 +64,7 @@ export async function POST(request: NextRequest) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          uris: [`spotify:track:${body.trackId}`],
+          uris: [body.trackUri],
         }),
       }
     );

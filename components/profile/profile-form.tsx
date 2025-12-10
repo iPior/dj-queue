@@ -31,7 +31,6 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
   };
 
   const handleCancel = () => {
-    // Reset to original values
     setUsername(profile.username);
     setDisplayName(profile.display_name || "");
     setBio(profile.bio || "");

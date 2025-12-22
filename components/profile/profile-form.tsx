@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { UserProfile } from "@/lib/types";
 import { PencilLine } from 'lucide-react';
 import { SpotifyConnection } from "@/components/profile/spotify-connection";
+import { SoundCloudConnection } from "@/components/profile/soundcloud-connection";
 import { DJQRCode } from "@/components/profile/dj-qr-code";
 
 export function ProfileForm({ profile }: { profile: UserProfile }) {
@@ -309,6 +310,10 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
 
       <div className="">
         <SpotifyConnection profile={profile} onUpdate={handleSpotifyUpdate} />
+      </div>
+
+      <div className="">
+        <SoundCloudConnection profile={profile} onUpdate={handleSpotifyUpdate} />
       </div>
 
       <div className="">

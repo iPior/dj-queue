@@ -54,6 +54,12 @@ export interface SpotifyTokens {
   expires_in: number;
 }
 
+export interface SoundCloudTokens {
+  access_token: string;
+  refresh_token?: string;
+  expires_in: number;
+}
+
 export interface SpotifyTrack {
   id: string;
   name: string;
